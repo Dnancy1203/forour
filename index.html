@@ -12316,11 +12316,14 @@ html[data-theme="dark"] .web-embed-content iframe {
 <style id="ourlove-moments-reply-v1">
 #moments-modal .modal-content{position:relative;}
 #moments-modal #moments-content{padding-bottom:58px;box-sizing:border-box;}
-#moments-modal .moments-reply-composer{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:5px;padding:7px 10px 9px;border-top:1px solid var(--border-color);background:var(--secondary-bg);box-sizing:border-box;z-index:40;}
+#moments-modal .moments-reply-composer{position:absolute;left:0;right:0;bottom:0;display:none;flex-direction:column;gap:5px;padding:7px 10px 9px;border-top:1px solid var(--border-color);background:var(--secondary-bg);box-sizing:border-box;z-index:40;}
+#moments-modal .moments-reply-composer.active{display:flex;}
 #moments-modal .moments-reply-input-row{display:flex;align-items:flex-end;gap:7px;}
 #moments-modal .moments-reply-input{flex:1;min-height:34px;max-height:88px;resize:none;box-sizing:border-box;}
 #moments-modal .moments-reply-send{flex:0 0 auto;height:34px;}
 #moments-modal .moment-comment-continue{cursor:pointer;margin-left:8px;font-size:11px;opacity:.8;}
+#moments-modal .moments-publish-camera{position:absolute;top:10px;right:10px;width:34px;height:34px;padding:0;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.82);color:var(--accent-color);font-size:16px;cursor:pointer;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.12);backdrop-filter:blur(4px);}
+
 </style>
 </head>
 <body>
@@ -38472,7 +38475,6 @@ async function speakTtsText(text) {
         </div>
         <div class="moments-content" id="moments-content"></div>
         <div class="moments-reply-composer" id="moments-reply-composer">
-            <div class="moments-reply-context" id="moments-reply-context">写下你的评论</div>
             <div class="moments-reply-input-row">
                 <textarea id="moments-reply-input" class="moments-reply-input" rows="1" placeholder="写下评论……" maxlength="500"></textarea>
                 <button type="button" id="moments-reply-send" class="moments-reply-send">发送</button>
@@ -38822,12 +38824,15 @@ async function speakTtsText(text) {
                                 <i class="fas fa-caret-down"></i> 展开解读
                             </span>`;
                         }
-                        // 原来的“回复”保留；“继续回复”只在长楼出现，并固定在这一楼第一条评论旁。
-                        html += `<div class="moment-comment-actions">
-                            <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
-                                <i class="fas fa-reply"></i> 回复
-                            </span>
-                        </div>`;
+                        // 短楼保持原来的“回复”：显示在这一楼最后一条回复下面。
+                        // 回复达到 5 条及以上后，原来的“回复”隐藏，只保留第一条评论旁的“继续回复”。
+                        if (replyCount < 5) {
+                            html += `<div class="moment-comment-actions">
+                                <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
+                                    <i class="fas fa-reply"></i> 回复
+                                </span>
+                            </div>`;
+                        }
 
                         // 回复串
                         if (comment.replies && comment.replies.length > 0) {
@@ -38835,7 +38840,7 @@ async function speakTtsText(text) {
                                 const rAuthor = reply.author === 'me' ? mn : pn;
                                 const inferredTarget = reply.replyToName || (replyIndex === 0 ? cAuthor : (comment.replies[replyIndex - 1].author === 'me' ? mn : pn));
                                 html += `<div class="moment-thread-reply" id="moment-reply-${escapeHtml(reply.id)}">
-                                    <div class="moment-comment-author" style="font-size:11px;">${escapeHtml(rAuthor)}<span class="moment-reply-to-label"> 回复 ${escapeHtml(inferredTarget)}</span></div>
+                                    <div class="moment-comment-author" style="font-size:11px;">${escapeHtml(rAuthor)}<span class="moment-reply-to-label"> 回复</span></div>
                                     <div class="moment-comment-text" style="font-size:12px;">${escapeHtml(reply.text)}</div>`;
                                 if (reply.aiExpandedText) {
                                     html += `<div class="moment-comment-expanded" style="font-size:11px;">
@@ -39270,20 +39275,15 @@ ${conversationChain}
 
     function updateMomentsReplyComposer() {
         const composer = document.getElementById('moments-reply-composer');
-        const context = document.getElementById('moments-reply-context');
         const input = document.getElementById('moments-reply-input');
-        if (!composer || !context || !input) return;
+        if (!composer || !input) return;
 
-        if (momentsReplyTarget && momentsReplyTarget.commentId) {
-            const thread = getMomentThread(momentsReplyTarget.postId, momentsReplyTarget.commentId);
-            const cAuthor = thread ? (thread.comment.author === 'me' ? getMyName() : getPartnerName()) : '';
-            context.textContent = `回复 ${cAuthor || '这一楼'}`;
-            input.placeholder = `回复 ${cAuthor || '这一楼'}……`;
+        input.placeholder = '写下评论……';
+        if (momentsReplyTarget && momentsReplyTarget.postId) {
+            composer.classList.add('active');
         } else {
-            context.textContent = '写下你的评论';
-            input.placeholder = '写下评论……';
+            composer.classList.remove('active');
         }
-        composer.classList.add('active');
     }
 
     function focusMomentsReplyInput() {
@@ -39744,6 +39744,10 @@ ${conversationChain}
                 hideModal(DOMElements.advancedModal.modal);
             }
             loadMomentsData();
+            // 每次重新打开朋友圈都从未选择回复的状态开始，底部回复框默认隐藏。
+            momentsReplyTarget = null;
+            const momentsComposer = document.getElementById('moments-reply-composer');
+            if (momentsComposer) momentsComposer.classList.remove('active');
             renderMomentsList('mine');
             showModal(document.getElementById('moments-modal'));
         });
@@ -39763,6 +39767,9 @@ ${conversationChain}
         
         // 关闭按钮
         document.getElementById('moments-close').addEventListener('click', () => {
+            momentsReplyTarget = null;
+            const momentsComposer = document.getElementById('moments-reply-composer');
+            if (momentsComposer) momentsComposer.classList.remove('active');
             hideModal(document.getElementById('moments-modal'));
         });
         
