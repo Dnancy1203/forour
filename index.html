@@ -7198,6 +7198,51 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
+        /* 回复管理顶部四个并列入口：强制一行四等分，手机端不再需要横向滑动 */
+        #custom-replies-modal .modal-sidebar {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            gap: 4px;
+            justify-content: stretch;
+            overflow: hidden;
+        }
+        #custom-replies-modal .modal-sidebar .sidebar-btn {
+            flex: 1 1 0;
+            min-width: 0;
+            width: 0;
+            max-width: none;
+            padding: 10px 4px;
+            gap: 5px;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        #custom-replies-modal .modal-sidebar .sidebar-btn span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #custom-replies-modal .modal-sidebar .sidebar-btn i {
+            flex: 0 0 auto;
+            font-size: 16px;
+        }
+        @media (max-width: 480px) {
+            #custom-replies-modal .modal-sidebar {
+                padding: 7px 7px;
+                gap: 2px;
+            }
+            #custom-replies-modal .modal-sidebar .sidebar-btn {
+                padding: 9px 2px;
+                gap: 3px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+            #custom-replies-modal .modal-sidebar .sidebar-btn i {
+                font-size: 14px;
+            }
+        }
+
         .modal-main-view {
     flex: 1;
     display: flex;
@@ -21140,6 +21185,8 @@ function initReplyLibraryListeners() {
             btn.classList.add('active');
             currentMajorTab = btn.dataset.major;
 
+            // 回复心意是独立模块，不进入原有 LIBRARY_CONFIG，交给独立模块自己的点击处理。
+            if (currentMajorTab === 'reply-mood-hints') return;
             if (currentMajorTab === 'announcement') return;
 
             const listArea = document.getElementById('custom-replies-list');
