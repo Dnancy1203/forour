@@ -12321,7 +12321,7 @@ html[data-theme="dark"] .web-embed-content iframe {
 #moments-modal .moments-reply-input-row{display:flex;align-items:flex-end;gap:7px;}
 #moments-modal .moments-reply-input{flex:1;min-height:34px;max-height:88px;resize:none;box-sizing:border-box;}
 #moments-modal .moments-reply-send{flex:0 0 auto;height:34px;}
-#moments-modal .moment-comment-continue{cursor:pointer;margin-left:8px;font-size:11px;opacity:.8;white-space:nowrap;}
+#moments-modal .moment-comment-continue{cursor:pointer;margin-left:8px;font-size:11px;opacity:.8;}
 #moments-modal .moments-publish-camera{position:absolute;top:10px;right:10px;width:34px;height:34px;padding:0;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.82);color:var(--accent-color);font-size:16px;cursor:pointer;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.12);backdrop-filter:blur(4px);}
 
 </style>
@@ -38804,9 +38804,15 @@ async function speakTtsText(text) {
                     post.comments.forEach(comment => {
                         const cAuthor = comment.author === 'me' ? mn : pn;
                         const replyCount = Array.isArray(comment.replies) ? comment.replies.length : 0;
+                        const continueBtn = replyCount >= 5
+                            ? `<span class="moment-comment-continue" onclick="window.continueMomentComment('${post.id}','${comment.id}')">
+                                <i class="fas fa-level-down-alt"></i> 继续回复
+                              </span>`
+                            : '';
                         html += `<div class="moment-comment" id="moment-thread-${escapeHtml(post.id)}-${escapeHtml(comment.id)}">
                             <div class="moment-comment-head">
                                 <div class="moment-comment-author">${escapeHtml(cAuthor)}</div>
+                                ${continueBtn}
                             </div>
                             <div class="moment-comment-text">${escapeHtml(comment.text)}</div>`;
                         if (comment.aiExpandedText) {
@@ -38818,27 +38824,20 @@ async function speakTtsText(text) {
                                 <i class="fas fa-caret-down"></i> 展开解读
                             </span>`;
                         }
-                        // 5条以内继续使用原来的“回复”；达到5条后不再显示“回复”，改用楼内第一条回复旁的“继续回复”。
-                        if (replyCount < 5) {
-                            html += `<div class="moment-comment-actions">
-                                <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
-                                    <i class="fas fa-reply"></i> 回复
-                                </span>
-                            </div>`;
-                        }
+                        // 原来的“回复”保留；“继续回复”只在长楼出现，并固定在这一楼第一条评论旁。
+                        html += `<div class="moment-comment-actions">
+                            <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
+                                <i class="fas fa-reply"></i> 回复
+                            </span>
+                        </div>`;
 
                         // 回复串
                         if (comment.replies && comment.replies.length > 0) {
                             comment.replies.forEach((reply, replyIndex) => {
                                 const rAuthor = reply.author === 'me' ? mn : pn;
                                 const inferredTarget = reply.replyToName || (replyIndex === 0 ? cAuthor : (comment.replies[replyIndex - 1].author === 'me' ? mn : pn));
-                                const continueBtn = replyCount >= 5 && replyIndex === 0
-                                    ? `<span class="moment-comment-continue" onclick="window.continueMomentComment('${post.id}','${comment.id}')">
-                                        <i class="fas fa-level-down-alt"></i> 继续回复
-                                      </span>`
-                                    : '';
                                 html += `<div class="moment-thread-reply" id="moment-reply-${escapeHtml(reply.id)}">
-                                    <div class="moment-comment-author" style="font-size:11px;">${escapeHtml(rAuthor)}<span class="moment-reply-to-label"> 回复</span>${continueBtn}</div>
+                                    <div class="moment-comment-author" style="font-size:11px;">${escapeHtml(rAuthor)}<span class="moment-reply-to-label"> 回复</span></div>
                                     <div class="moment-comment-text" style="font-size:12px;">${escapeHtml(reply.text)}</div>`;
                                 if (reply.aiExpandedText) {
                                     html += `<div class="moment-comment-expanded" style="font-size:11px;">
