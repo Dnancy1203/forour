@@ -158,7 +158,11 @@
     const p=ensurePanel();if(!p)return;
     const counts={mood:entries('mood').length,heart:entries('heart').length,intent:entries('intent').length};
     p.innerHTML=`<div style="height:100%;width:100%;max-width:100%;display:flex;flex-direction:column;min-width:0;box-sizing:border-box;overflow:hidden;">
-      <div style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border-color);background:var(--secondary-bg);box-sizing:border-box;min-width:0;"><i class="fas fa-heart" style="color:var(--accent-color);"></i><strong style="font-size:16px;">回复心意</strong><span style="margin-left:auto;font-size:11px;color:var(--text-secondary);">独立模块</span></div>
+      <div style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border-color);background:var(--secondary-bg);box-sizing:border-box;min-width:0;">
+        <button id="rmh-back" type="button" title="返回回复库" style="flex:0 0 auto;border:0;background:transparent;color:var(--text-secondary);padding:7px 8px;border-radius:9px;cursor:pointer;font-size:14px;"><i class="fas fa-chevron-left"></i></button>
+        <i class="fas fa-heart" style="color:var(--accent-color);"></i><strong style="font-size:16px;">回复心意</strong><span style="margin-left:auto;font-size:11px;color:var(--text-secondary);">独立模块</span>
+        <button id="rmh-close" type="button" title="关闭" style="flex:0 0 auto;border:0;background:transparent;color:var(--text-secondary);padding:7px 8px;border-radius:9px;cursor:pointer;font-size:15px;"><i class="fas fa-times"></i></button>
+      </div>
       <div style="flex:0 0 auto;padding:11px 14px;border-bottom:1px solid var(--border-color);background:var(--secondary-bg);display:flex;align-items:center;gap:10px;min-width:0;box-sizing:border-box;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">回复下方显示心意提示</div><div style="font-size:11px;color:var(--text-secondary);margin-top:3px;line-height:1.4;">随机生成，不参与 TA 实际回复内容</div></div><button id="rmh-global" style="flex:0 0 auto;border:0;border-radius:20px;padding:7px 12px;background:${state.enabled?'var(--accent-color)':'var(--border-color)'};color:${state.enabled?'#fff':'var(--text-secondary)'};cursor:pointer;white-space:nowrap;">${state.enabled?'已开启':'已关闭'}</button></div>
       <div style="flex:0 0 auto;display:flex;gap:7px;padding:10px 12px 8px;overflow-x:auto;background:var(--secondary-bg);box-sizing:border-box;min-width:0;">${['mood','heart','intent'].map(k=>`<button class="rmh-layer" data-layer="${k}" style="flex:0 0 auto;white-space:nowrap;border:1px solid var(--border-color);border-radius:20px;padding:7px 11px;background:${currentLayer===k?'var(--primary-bg)':'transparent'};color:${state.layers[k]?'var(--text-primary)':'var(--text-secondary)'};cursor:pointer;">${layerNames[k]} ${counts[k]}</button>`).join('')}</div>
       <div id="rmh-list" style="flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;padding:8px 12px 12px;background:var(--primary-bg);box-sizing:border-box;-webkit-overflow-scrolling:touch;">${renderList(currentLayer)}</div>
@@ -179,6 +183,15 @@
   function editDialog(source,group,text){dialog('修改'+layerNames[source==='specialHeart'?'heart':source],`<div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">${esc(group)}</div><input id="rmh-text" value="${esc(text)}" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--primary-bg);color:var(--text-primary);">`,ov=>edit(source==='specialHeart'?'heart':source,source,group,text,ov.querySelector('#rmh-text').value));}
 
   function bindPanel(p){
+    const modal=document.getElementById('custom-replies-modal');
+    const back=p.querySelector('#rmh-back');
+    const close=p.querySelector('#rmh-close');
+    if(back) back.onclick=()=>closePanel();
+    if(close) close.onclick=()=>{
+      closePanel();
+      if(modal && typeof hideModal==='function') hideModal(modal);
+      else if(modal) modal.classList.remove('active');
+    };
     p.querySelector('#rmh-global').onclick=()=>{state.enabled=!state.enabled;save();renderPanel();};
     p.querySelectorAll('.rmh-layer').forEach(b=>b.onclick=()=>{currentLayer=b.dataset.layer;renderPanel();});
     p.querySelector('#rmh-add').onclick=()=>addDialog(currentLayer);
@@ -210,8 +223,84 @@
   function injectButton(){
     const side=document.querySelector('#custom-replies-modal .modal-sidebar');if(!side)return;
     let b=document.getElementById('ourlove-rmh-btn');
-    if(!b){b=document.createElement('button');b.id='ourlove-rmh-btn';b.className='sidebar-btn';b.type='button';b.innerHTML='<i class="fas fa-heart"></i><span>回复心意</span>';b.addEventListener('click',openPanel);side.appendChild(b);}
-    document.querySelectorAll('#custom-replies-modal .sidebar-btn:not(#ourlove-rmh-btn)').forEach(btn=>{if(btn.dataset.rmhCloseBound==='1')return;btn.dataset.rmhCloseBound='1';btn.addEventListener('click',closePanel);});
+    if(!b){
+      b=document.createElement('button');
+      b.id='ourlove-rmh-btn';
+      b.className='sidebar-btn';
+      b.dataset.major='reply-mood-hints';
+      b.type='button';
+      b.innerHTML='<i class="fas fa-heart"></i><span>回复心意</span>';
+      side.appendChild(b);
+    }
+
+    // 统一接管并列侧栏：不让“回复心意”把原回复库的切换逻辑卡死。
+    if(side.dataset.rmhCaptureBound!=='2'){
+      side.dataset.rmhCaptureBound='2';
+      side.addEventListener('click',function(e){
+        const btn=e.target.closest('.sidebar-btn');
+        if(!btn || !side.contains(btn)) return;
+
+        if(btn.id==='ourlove-rmh-btn'){
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          openPanel();
+          return;
+        }
+
+        // 先恢复原来的主界面，再由我们明确执行原页面的切换。
+        closePanel();
+        document.querySelectorAll('#custom-replies-modal .sidebar-btn').forEach(x=>x.classList.toggle('active',x===btn));
+
+        const major=btn.dataset.major;
+        if(major==='reply'){
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          try{
+            currentMajorTab='reply'; currentSubTab='custom';
+            _batchModeActive=false; _batchSelectedIndices.clear();
+            _searchVisible=false; _searchQuery=''; _activeGroupFilter=null;
+            const listArea=document.getElementById('custom-replies-list');
+            const annPanel=document.getElementById('announcement-panel');
+            const crToolbar=document.getElementById('cr-toolbar');
+            const subTabs=document.getElementById('cr-sub-tabs');
+            const addBtn=document.getElementById('add-custom-reply');
+            const titleEl=document.getElementById('cr-modal-title');
+            if(listArea)listArea.style.display=''; if(annPanel)annPanel.style.display='none';
+            if(crToolbar)crToolbar.style.display=''; if(subTabs)subTabs.style.display=''; if(addBtn)addBtn.style.display='';
+            if(titleEl)titleEl.textContent='内容管理';
+            renderReplyLibrary();
+          }catch(err){ console.error('[ReplyMoodHints] restore reply library failed',err); }
+          return;
+        }
+
+        if(major==='atmosphere'){
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          try{
+            currentMajorTab='atmosphere';
+            _batchModeActive=false; _batchSelectedIndices.clear();
+            _searchVisible=false; _searchQuery=''; _activeGroupFilter=null;
+            const listArea=document.getElementById('custom-replies-list');
+            const annPanel=document.getElementById('announcement-panel');
+            const crToolbar=document.getElementById('cr-toolbar');
+            const subTabs=document.getElementById('cr-sub-tabs');
+            const addBtn=document.getElementById('add-custom-reply');
+            const titleEl=document.getElementById('cr-modal-title');
+            if(listArea)listArea.style.display=''; if(annPanel)annPanel.style.display='none';
+            if(crToolbar)crToolbar.style.display=''; if(subTabs)subTabs.style.display=''; if(addBtn)addBtn.style.display='';
+            if(titleEl)titleEl.textContent='内容管理';
+            currentSubTab=LIBRARY_CONFIG.atmosphere.tabs[0].id;
+            renderReplyLibrary();
+          }catch(err){ console.error('[ReplyMoodHints] restore atmosphere failed',err); }
+          return;
+        }
+
+        // 公告仍交给原页面的 onclick / listener。
+      },true);
+    }
   }
 
   window.OurLoveReplyMoodHints={state,generateHints,shouldAnnotateMessage,getData:()=>clone(state.data),openPanel,closePanel,add,edit:(layer,source,group,oldText,newText)=>edit(layer,source,group,oldText,newText),remove,setItemEnabled:toggle};
