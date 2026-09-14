@@ -298,6 +298,32 @@
           return;
         }
 
+        if(major==='announcement'){
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          try{
+            currentMajorTab='announcement';
+            currentSubTab='custom';
+            _batchModeActive=false; _batchSelectedIndices.clear();
+            _searchVisible=false; _searchQuery=''; _activeGroupFilter=null;
+            const listArea=document.getElementById('custom-replies-list');
+            const annPanel=document.getElementById('announcement-panel');
+            const crToolbar=document.getElementById('cr-toolbar');
+            const subTabs=document.getElementById('cr-sub-tabs');
+            const addBtn=document.getElementById('add-custom-reply');
+            const titleEl=document.getElementById('cr-modal-title');
+            if(listArea)listArea.style.display='none';
+            if(annPanel)annPanel.style.display='block';
+            if(crToolbar)crToolbar.style.display='none';
+            if(subTabs)subTabs.style.display='none';
+            if(addBtn)addBtn.style.display='none';
+            if(titleEl)titleEl.textContent='今日公告配置';
+            if(typeof switchToAnnouncementPanel==='function') switchToAnnouncementPanel();
+          }catch(err){ console.error('[ReplyMoodHints] switch announcement failed',err); }
+          return;
+        }
+
         // 公告仍交给原页面的 onclick / listener。
       },true);
     }

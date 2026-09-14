@@ -12274,6 +12274,13 @@ html[data-theme="dark"] .web-embed-content iframe {
   #custom-replies-modal .modal-sidebar .sidebar-btn span { max-width: calc(100% - 18px) !important; }
 }
 </style>
+
+<style id="ourlove-reply-sidebar-final-v2">
+#custom-replies-modal .modal-sidebar{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;gap:3px!important;padding:7px 5px!important;overflow:hidden!important;}
+#custom-replies-modal .modal-sidebar>.sidebar-btn{display:flex!important;flex:0 0 calc((100% - 9px)/4)!important;width:calc((100% - 9px)/4)!important;min-width:0!important;max-width:calc((100% - 9px)/4)!important;margin:0!important;padding:8px 0!important;box-sizing:border-box!important;justify-content:center!important;align-items:center!important;gap:2px!important;overflow:hidden!important;white-space:nowrap!important;}
+#custom-replies-modal .modal-sidebar>.sidebar-btn span{min-width:0!important;max-width:calc(100% - 17px)!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+#custom-replies-modal .modal-sidebar>.sidebar-btn i{flex:0 0 auto!important;font-size:13px!important;}
+</style>
 </head>
 <body>
 <div id="splash-declaration">
@@ -14140,7 +14147,7 @@ html[data-theme="dark"] .web-embed-content iframe {
                     <i class="fas fa-magic"></i>
                     <span>氛围感</span>
                 </button>
-                <button class="sidebar-btn" data-major="announcement" onclick="switchToAnnouncementPanel()">
+                <button class="sidebar-btn" data-major="announcement" type="button">
                     <i class="fas fa-newspaper"></i>
                     <span>公告</span>
                 </button>
