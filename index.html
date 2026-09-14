@@ -12192,6 +12192,66 @@ html[data-theme="dark"] .web-embed-content iframe {
 #ourlove-rmh-panel *{box-sizing:border-box;}
 @media (max-width:600px){#ourlove-rmh-panel{font-size:14px!important;}#ourlove-rmh-panel button{max-width:100%;}}
 </style>
+
+<style id="ourlove-reply-sidebar-final-fix">
+/* 回复管理四个主入口：固定四等分，不允许横向滚动 */
+#custom-replies-modal .modal-sidebar {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 7px 8px !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  justify-content: initial !important;
+  align-items: stretch !important;
+}
+#custom-replies-modal .modal-sidebar .sidebar-btn {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: none !important;
+  box-sizing: border-box !important;
+  padding: 9px 2px !important;
+  margin: 0 !important;
+  gap: 3px !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+#custom-replies-modal .modal-sidebar .sidebar-btn span {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+#custom-replies-modal .modal-sidebar .sidebar-btn i {
+  flex: 0 0 auto !important;
+}
+#custom-replies-modal .modal-main-view {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+#custom-replies-modal #ourlove-rmh-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+@media (max-width: 360px) {
+  #custom-replies-modal .modal-sidebar { padding: 6px 5px !important; gap: 2px !important; }
+  #custom-replies-modal .modal-sidebar .sidebar-btn { font-size: 11px !important; padding: 8px 1px !important; gap: 2px !important; }
+  #custom-replies-modal .modal-sidebar .sidebar-btn i { font-size: 13px !important; }
+}
+</style>
 </head>
 <body>
 <div id="splash-declaration">
