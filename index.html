@@ -12142,6 +12142,11 @@ html[data-theme="dark"] .web-embed-content iframe {
 }
     </style>
     <style id="css-live-preview-style"></style>
+<style id="ourlove-reply-mood-hints-fix">
+#ourlove-rmh-panel{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;left:0!important;right:0!important;overflow:hidden!important;}
+#ourlove-rmh-panel *{box-sizing:border-box;}
+@media (max-width:600px){#ourlove-rmh-panel{font-size:14px!important;}#ourlove-rmh-panel button{max-width:100%;}}
+</style>
 </head>
 <body>
 <div id="splash-declaration">
@@ -16623,35 +16628,35 @@ let metaHTML = '';
 
                 contentWrapper.append(actionsDiv, messageDiv);
 
-                // 回复心意：仅在 TA 的普通回复气泡下显示，位于气泡与时间之间。
-                // 由独立的 reply-mood-hints.js 提供随机内容与开关/管理数据。
+                // 回复心意：只给功能启用后产生的 TA 新回复显示，历史消息不补标签。
+                // 标签放在气泡下方的独立小框中，方便看清。
                 if (msg.sender !== 'user' && msg.sender !== null &&
                     msg.type !== 'system' && msg.type !== 'call-event' &&
                     !msg.webEmbed && !msg.isInvitationCard && !msg.xhsCard &&
                     window.OurLoveReplyMoodHints &&
+                    typeof window.OurLoveReplyMoodHints.shouldAnnotateMessage === 'function' &&
+                    window.OurLoveReplyMoodHints.shouldAnnotateMessage(msg) &&
                     typeof window.OurLoveReplyMoodHints.generateHints === 'function') {
                     const hints = msg._replyMoodHints || window.OurLoveReplyMoodHints.generateHints();
-                    // 第一次生成后写回消息对象，避免同一条消息每次重绘都换一套。
                     if (!msg._replyMoodHints) {
                         msg._replyMoodHints = hints;
-                        try {
-                            if (typeof throttledSaveData === 'function') throttledSaveData();
-                        } catch (e) {}
+                        try { if (typeof throttledSaveData === 'function') throttledSaveData(); } catch (e) {}
                     }
                     if (Array.isArray(hints) && hints.length) {
                         const hintBox = document.createElement('div');
                         hintBox.className = 'ourlove-reply-mood-hints';
-                        hintBox.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;margin:5px 0 0 2px;padding:0 2px;font-size:10.5px;line-height:1.5;color:var(--text-secondary);opacity:.82;';
+                        hintBox.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:6px 0 0 0;padding:7px 8px;width:fit-content;max-width:100%;box-sizing:border-box;border:1px solid var(--border-color);border-radius:10px;background:var(--secondary-bg);font-size:11px;line-height:1.45;color:var(--text-secondary);';
                         const names = { mood:'情绪', heart:'心意', intent:'交流意图' };
                         hints.forEach(h => {
                             if (!h || !h.text) return;
                             const item = document.createElement('span');
-                            item.style.cssText = 'display:inline-flex;align-items:center;white-space:nowrap;';
+                            item.style.cssText = 'display:inline-flex;align-items:center;white-space:normal;min-width:0;';
                             const label = document.createElement('span');
                             label.textContent = names[h.type] || h.type || '提示';
-                            label.style.cssText = 'font-size:9px;padding:1px 5px;margin-right:3px;border-radius:8px;background:var(--secondary-bg);border:1px solid var(--border-color);opacity:.9;';
+                            label.style.cssText = 'font-size:9px;padding:2px 5px;margin-right:3px;border-radius:7px;background:var(--primary-bg);border:1px solid var(--border-color);white-space:nowrap;';
                             const text = document.createElement('span');
                             text.textContent = h.text;
+                            text.style.cssText = 'overflow-wrap:anywhere;';
                             item.append(label, text);
                             hintBox.appendChild(item);
                         });
@@ -37547,6 +37552,18 @@ async function speakTtsText(text) {
     padding: 0 !important;
     overflow: hidden;
     border-radius: 16px;
+    position: relative;
+}
+.moments-publish-fixed {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 0;
+    background: var(--secondary-bg);
+    padding: 9px 16px;
+    z-index: 30;
+}
+.moments-publish-fixed .moments-publish-btn {
+    min-height: 42px;
 }
 .moments-header {
     display: flex;
@@ -38246,6 +38263,11 @@ async function speakTtsText(text) {
             <div class="moments-tab" data-tab="partner" id="moments-tab-partner">梦角的</div>
         </div>
         <div class="moments-content" id="moments-content"></div>
+        <div class="moments-publish-bar moments-publish-fixed" id="moments-publish-fixed">
+            <button class="moments-publish-btn" onclick="window.openMomentEditor()">
+                <i class="fas fa-pen"></i> 发布朋友圈
+            </button>
+        </div>
     </div>
 </div>
 
@@ -38610,16 +38632,10 @@ async function speakTtsText(text) {
             });
         }
         
-        // 发布按钮（仅"我的"）
-        if (tab === 'mine') {
-            html += `<div class="moments-publish-bar">
-                <button class="moments-publish-btn" onclick="window.openMomentEditor()">
-                    <i class="fas fa-pen"></i> 发布朋友圈
-                </button>
-            </div>`;
-        }
-        
         container.innerHTML = html;
+        // 发布按钮固定在朋友圈窗口底部，避免每次滚到帖子最底部才能发布
+        const publishBar = document.getElementById('moments-publish-fixed');
+        if (publishBar) publishBar.style.display = (tab === 'mine') ? 'flex' : 'none';
         container.scrollTop = 0;
         // 控制右下角手动发帖按钮的显隐（只在梦角tab显示）
         const fab = document.getElementById('partner-post-fab');
@@ -43265,6 +43281,7 @@ const firstDelay = 60 * 1000 + Math.random() * 14 * 60 * 1000; // 1-15分钟
 })();
 </script>
 <!-- ========== 弹窗公告结束 ========== -->
+    
     <script src="reply-mood-hints.js"></script>
 </body>
 </html>
