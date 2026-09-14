@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="light" data-color-theme="black-white">
 <head>
+<!-- OurLove Moments UI final build 2026-09-14 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
@@ -6556,8 +6557,8 @@
         }
 
         .pl-icon-btn {
-    width: 28px;
-    height: 28px;
+    width: 26px !important;
+    height: 26px !important;
     border-radius: 6px;
     border: none;
     background: transparent;
@@ -12282,35 +12283,6 @@ html[data-theme="dark"] .web-embed-content iframe {
 #custom-replies-modal .modal-sidebar>.sidebar-btn i{flex:0 0 auto!important;font-size:13px!important;}
 </style>
 
-<style id="ourlove-moments-fixed-bottom-v2">
-/* 朋友圈：内容独立滚动，底部发布栏永远固定在窗口内 */
-#moments-modal .modal-content {
-    height: min(70vh, 760px);
-    max-height: 70vh;
-    min-height: 0;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-#moments-modal .moments-header,
-#moments-modal .moments-tabs,
-#moments-modal .moments-publish-fixed {
-    flex: 0 0 auto !important;
-}
-#moments-modal #moments-content {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-#moments-modal .moments-publish-fixed {
-    position: relative !important;
-    bottom: auto !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-</style>
 
 <style id="ourlove-chat-reply-comfort-v1">
 /* 长聊天时：一键回到最下面，不必手动拖到底 */
@@ -12342,174 +12314,13 @@ html[data-theme="dark"] .web-embed-content iframe {
 </style>
 
 <style id="ourlove-moments-reply-v1">
-/* 朋友圈最终回复交互：发布入口在封面右侧，回复框固定在内容滚动区下方 */
-#moments-modal .modal-content {
-    height: min(70vh, 760px);
-    max-height: 70vh;
-    min-height: 0;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-#moments-modal .moments-header,
-#moments-modal .moments-tabs,
-#moments-modal .moments-reply-composer {
-    flex: 0 0 auto !important;
-}
-#moments-modal #moments-content {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-
-/* 小相机：放在“老公的”下面、老公头像框正上方 */
-#moments-modal .moments-publish-camera {
-    position: absolute;
-    right: 21px;
-    bottom: 55px;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.78);
-    color: var(--text-secondary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 8;
-    backdrop-filter: blur(5px);
-    -webkit-tap-highlight-color: transparent;
-}
-#moments-modal .moments-publish-camera i {
-    font-size: 13px;
-}
-#moments-modal .moments-publish-camera:active {
-    transform: scale(0.94);
-}
-
-/* 永久固定的朋友圈回复框：内容滚动时它不动 */
-#moments-modal .moments-reply-composer {
-    display: flex !important;
-    flex-direction: column;
-    gap: 5px;
-    padding: 7px 10px 9px;
-    border-top: 1px solid var(--border-color);
-    background: var(--secondary-bg);
-    box-sizing: border-box;
-    z-index: 40;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
-}
-#moments-modal .moments-reply-context {
-    min-height: 14px;
-    padding: 0 3px;
-    font-size: 10px;
-    line-height: 14px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-#moments-modal .moments-reply-input-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 7px;
-}
-#moments-modal .moments-reply-input {
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: 36px;
-    max-height: 88px;
-    margin: 0;
-    padding: 8px 11px;
-    resize: none;
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
-    outline: none;
-    background: var(--primary-bg);
-    color: var(--text-primary);
-    font-family: var(--font-family);
-    font-size: 12px;
-    line-height: 18px;
-    box-sizing: border-box;
-}
-#moments-modal .moments-reply-input:focus {
-    border-color: rgba(var(--accent-color-rgb), 0.45);
-}
-#moments-modal .moments-reply-send {
-    flex: 0 0 auto;
-    min-width: 48px;
-    height: 36px;
-    padding: 0 10px;
-    border: 0;
-    border-radius: 18px;
-    background: var(--accent-color);
-    color: #fff;
-    font-family: var(--font-family);
-    font-size: 12px;
-    cursor: pointer;
-}
-#moments-modal .moments-reply-send:active {
-    transform: scale(0.96);
-}
-
-/* 每个评论楼自己的操作区；继续回复只在达到 5 条小回复后出现 */
-#moments-modal .moment-comment-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-#moments-modal .moment-comment-head .moment-comment-author {
-    min-width: 0;
-    margin-bottom: 3px;
-}
-#moments-modal .moment-comment-continue {
-    flex: 0 0 auto;
-    padding: 3px 7px;
-    border-radius: 10px;
-    color: var(--accent-color);
-    font-size: 10px;
-    line-height: 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    background: rgba(var(--accent-color-rgb), 0.05);
-}
-#moments-modal .moment-comment-continue:active {
-    transform: scale(0.97);
-}
-#moments-modal .moment-comment-actions {
-    margin-top: 3px;
-}
-#moments-modal .moment-thread-reply {
-    margin-left: 16px;
-    padding: 4px 0;
-    border-top: 1px dashed rgba(var(--accent-color-rgb),0.05);
-}
-#moments-modal .moment-reply-to-label {
-    font-weight: 400;
-    color: var(--text-secondary);
-    opacity: 0.9;
-}
-
-@media (max-width: 480px) {
-    #moments-modal .moments-publish-camera {
-        right: 19px;
-        bottom: 54px;
-        width: 27px;
-        height: 27px;
-    }
-    #moments-modal .moments-reply-composer {
-        padding: 6px 8px 8px;
-    }
-    #moments-modal .moments-reply-input {
-        font-size: 12px;
-    }
-}
+#moments-modal .modal-content{position:relative;}
+#moments-modal #moments-content{padding-bottom:58px;box-sizing:border-box;}
+#moments-modal .moments-reply-composer{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:5px;padding:7px 10px 9px;border-top:1px solid var(--border-color);background:var(--secondary-bg);box-sizing:border-box;z-index:40;}
+#moments-modal .moments-reply-input-row{display:flex;align-items:flex-end;gap:7px;}
+#moments-modal .moments-reply-input{flex:1;min-height:34px;max-height:88px;resize:none;box-sizing:border-box;}
+#moments-modal .moments-reply-send{flex:0 0 auto;height:34px;}
+#moments-modal .moment-comment-continue{cursor:pointer;margin-left:8px;font-size:11px;opacity:.8;}
 </style>
 </head>
 <body>
