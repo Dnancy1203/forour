@@ -12314,13 +12314,8 @@ html[data-theme="dark"] .web-embed-content iframe {
 </style>
 
 <style id="ourlove-moments-reply-v1">
-#moments-modal .modal-content{position:relative;}
-#moments-modal #moments-content{padding-bottom:58px;box-sizing:border-box;}
-#moments-modal .moments-reply-composer{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:5px;padding:7px 10px 9px;border-top:1px solid var(--border-color);background:var(--secondary-bg);box-sizing:border-box;z-index:40;}
-#moments-modal .moments-reply-input-row{display:flex;align-items:flex-end;gap:7px;}
-#moments-modal .moments-reply-input{flex:1;min-height:34px;max-height:88px;resize:none;box-sizing:border-box;}
-#moments-modal .moments-reply-send{flex:0 0 auto;height:34px;}
-#moments-modal .moment-comment-continue{cursor:pointer;margin-left:8px;font-size:11px;opacity:.8;}
+#moments-modal .moments-publish-camera{position:absolute;top:10px;right:10px;width:34px;height:34px;padding:0;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.82);color:var(--accent-color);font-size:16px;cursor:pointer;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.12);backdrop-filter:blur(4px);}
+
 </style>
 </head>
 <body>
@@ -38471,13 +38466,6 @@ async function speakTtsText(text) {
             <div class="moments-tab" data-tab="partner" id="moments-tab-partner">梦角的</div>
         </div>
         <div class="moments-content" id="moments-content"></div>
-        <div class="moments-reply-composer" id="moments-reply-composer">
-            <div class="moments-reply-context" id="moments-reply-context">写下你的评论</div>
-            <div class="moments-reply-input-row">
-                <textarea id="moments-reply-input" class="moments-reply-input" rows="1" placeholder="写下评论……" maxlength="500"></textarea>
-                <button type="button" id="moments-reply-send" class="moments-reply-send">发送</button>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -38801,17 +38789,8 @@ async function speakTtsText(text) {
                     html += `<div class="moment-comments" id="comments-${post.id}">`;
                     post.comments.forEach(comment => {
                         const cAuthor = comment.author === 'me' ? mn : pn;
-                        const replyCount = Array.isArray(comment.replies) ? comment.replies.length : 0;
-                        const continueBtn = replyCount >= 5
-                            ? `<span class="moment-comment-continue" onclick="window.continueMomentComment('${post.id}','${comment.id}')">
-                                <i class="fas fa-level-down-alt"></i> 继续回复
-                              </span>`
-                            : '';
-                        html += `<div class="moment-comment" id="moment-thread-${escapeHtml(post.id)}-${escapeHtml(comment.id)}">
-                            <div class="moment-comment-head">
-                                <div class="moment-comment-author">${escapeHtml(cAuthor)}</div>
-                                ${continueBtn}
-                            </div>
+                        html += `<div class="moment-comment">
+                            <div class="moment-comment-author">${escapeHtml(cAuthor)}</div>
                             <div class="moment-comment-text">${escapeHtml(comment.text)}</div>`;
                         if (comment.aiExpandedText) {
                             html += `<div class="moment-comment-expanded">
@@ -38822,20 +38801,12 @@ async function speakTtsText(text) {
                                 <i class="fas fa-caret-down"></i> 展开解读
                             </span>`;
                         }
-                        // 原来的“回复”保留；“继续回复”只在长楼出现，并固定在这一楼第一条评论旁。
-                        html += `<div class="moment-comment-actions">
-                            <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
-                                <i class="fas fa-reply"></i> 回复
-                            </span>
-                        </div>`;
-
-                        // 回复串
+                        // 回复
                         if (comment.replies && comment.replies.length > 0) {
-                            comment.replies.forEach((reply, replyIndex) => {
+                            comment.replies.forEach(reply => {
                                 const rAuthor = reply.author === 'me' ? mn : pn;
-                                const inferredTarget = reply.replyToName || (replyIndex === 0 ? cAuthor : (comment.replies[replyIndex - 1].author === 'me' ? mn : pn));
-                                html += `<div class="moment-thread-reply" id="moment-reply-${escapeHtml(reply.id)}">
-                                    <div class="moment-comment-author" style="font-size:11px;">${escapeHtml(rAuthor)}<span class="moment-reply-to-label"> 回复 ${escapeHtml(inferredTarget)}</span></div>
+                                html += `<div style="margin-left:16px;padding:4px 0;border-top:1px dashed rgba(var(--accent-color-rgb),0.05);">
+                                    <div class="moment-comment-author" style="font-size:11px;">${escapeHtml(rAuthor)}</div>
                                     <div class="moment-comment-text" style="font-size:12px;">${escapeHtml(reply.text)}</div>`;
                                 if (reply.aiExpandedText) {
                                     html += `<div class="moment-comment-expanded" style="font-size:11px;">
@@ -38849,7 +38820,10 @@ async function speakTtsText(text) {
                                 html += `</div>`;
                             });
                         }
-
+                        // 回复按钮
+                        html += `<span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
+                            <i class="fas fa-reply"></i> 回复
+                        </span>`;
                         html += `</div>`;
                     });
                     html += `</div>`;
@@ -38860,8 +38834,6 @@ async function speakTtsText(text) {
         }
         
         container.innerHTML = html;
-        // 回复输入框固定在朋友圈窗口底部；发布入口改为封面区域的小相机。
-        updateMomentsReplyComposer();
         container.scrollTop = 0;
         // 控制右下角手动发帖按钮的显隐（只在梦角tab显示）
         const fab = document.getElementById('partner-post-fab');
@@ -39255,204 +39227,110 @@ ${conversationChain}
         saveMomentsData();
         renderMomentsList(currentMomentsTab);
     };
-    // ==================== 朋友圈固定回复框 ====================
-    let momentsReplyTarget = null;
-
-    function getMomentThread(postId, commentId) {
-        loadMomentsData();
-        const post = momentsData.posts.find(p => p.id === postId);
-        if (!post) return null;
-        const comment = (post.comments || []).find(c => c.id === commentId);
-        if (!comment) return null;
-        if (!Array.isArray(comment.replies)) comment.replies = [];
-        return { post, comment };
-    }
-
-    function updateMomentsReplyComposer() {
-        const composer = document.getElementById('moments-reply-composer');
-        const context = document.getElementById('moments-reply-context');
-        const input = document.getElementById('moments-reply-input');
-        if (!composer || !context || !input) return;
-
-        if (momentsReplyTarget && momentsReplyTarget.commentId) {
-            const thread = getMomentThread(momentsReplyTarget.postId, momentsReplyTarget.commentId);
-            const cAuthor = thread ? (thread.comment.author === 'me' ? getMyName() : getPartnerName()) : '';
-            context.textContent = `回复 ${cAuthor || '这一楼'}`;
-            input.placeholder = `回复 ${cAuthor || '这一楼'}……`;
-        } else {
-            context.textContent = '写下你的评论';
-            input.placeholder = '写下评论……';
-        }
-        composer.classList.add('active');
-    }
-
-    function focusMomentsReplyInput() {
-        const input = document.getElementById('moments-reply-input');
-        if (!input) return;
-        requestAnimationFrame(() => {
-            input.focus({ preventScroll: true });
-            try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) {}
-        });
-    }
-
-    function scrollToMomentThreadLatest(postId, commentId, focusInput) {
-        const container = document.getElementById('moments-content');
-        if (!container) return;
-        const thread = document.getElementById(`moment-thread-${postId}-${commentId}`);
-        const replies = thread ? thread.querySelectorAll('.moment-thread-reply') : [];
-        const target = replies.length ? replies[replies.length - 1] : thread;
-        if (target) {
-            const containerRect = container.getBoundingClientRect();
-            const targetRect = target.getBoundingClientRect();
-            const top = container.scrollTop + (targetRect.top - containerRect.top) - Math.max(12, container.clientHeight * 0.28);
-            container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-        }
-        if (focusInput) setTimeout(focusMomentsReplyInput, 280);
-    }
-
-    // 原来的“回复”入口保留：不再弹出系统 prompt，而是使用底部固定输入框。
-    window.replyToMomentComment = function(postId, commentId) {
-        const thread = getMomentThread(postId, commentId);
-        if (!thread) return;
-        momentsReplyTarget = { postId, commentId };
-        updateMomentsReplyComposer();
-        focusMomentsReplyInput();
+    // 评论朋友圈帖子（不是回复已有评论）
+window.commentOnMoment = function(postId) {
+    const text = prompt('写下你的评论：');
+    if (!text || !text.trim()) return;
+    
+    loadMomentsData();
+    const post = momentsData.posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    // 添加评论
+    const comment = {
+        id: 'cmt_' + Date.now(),
+        author: 'me',
+        text: text.trim(),
+        aiExpandedText: null,
+        timestamp: Date.now(),
+        replies: []
     };
-
-    // 长楼专用：按钮在楼的第一条评论处，点击后直接定位到该楼最新一句。
-    window.continueMomentComment = function(postId, commentId) {
-        const thread = getMomentThread(postId, commentId);
-        if (!thread) return;
-        momentsReplyTarget = { postId, commentId };
-        updateMomentsReplyComposer();
-        scrollToMomentThreadLatest(postId, commentId, true);
-    };
-
-    // 评论朋友圈主帖：固定输入框始终可用，点击“评论”后绑定到该帖子。
-    window.commentOnMoment = function(postId) {
+    if (!post.comments) post.comments = [];
+    post.comments.push(comment);
+    saveMomentsData();
+    
+    // 立即刷新当前视图
+    if (currentMomentsTab === 'partner' || currentMomentsTab === 'mine') {
+        renderMomentsList(currentMomentsTab);
+    }
+    showNotification('评论成功 ✦', 'success');
+    
+    // 梦角在1分钟内回复
+    const delay = Math.random() * 60 * 1000;
+    setTimeout(() => {
         loadMomentsData();
-        const post = momentsData.posts.find(p => p.id === postId);
-        if (!post) return;
-        momentsReplyTarget = { postId, commentId: null };
-        updateMomentsReplyComposer();
-        focusMomentsReplyInput();
-    };
-
-    window.submitMomentReply = function() {
-        const input = document.getElementById('moments-reply-input');
-        if (!input) return;
-        const text = input.value.trim();
-        if (!text) return;
-
-        loadMomentsData();
-        const target = momentsReplyTarget;
-        if (!target || !target.postId) {
-            showNotification('请先选择要评论的朋友圈', 'warning');
-            return;
-        }
-        const post = momentsData.posts.find(p => p.id === target.postId);
-        if (!post) return;
-
-        // 没有 commentId：对朋友圈发起新的主评论。
-        if (!target.commentId) {
-            const comment = {
-                id: 'cmt_' + Date.now(),
-                author: 'me',
-                text,
-                aiExpandedText: null,
-                timestamp: Date.now(),
-                replies: []
-            };
-            if (!post.comments) post.comments = [];
-            post.comments.push(comment);
-            saveMomentsData();
-            input.value = '';
-            input.style.height = 'auto';
-            momentsReplyTarget = { postId: post.id, commentId: comment.id };
-            renderMomentsList(currentMomentsTab);
-            showNotification('评论成功 ✦', 'success');
-            schedulePartnerMomentReply(post.id, comment.id);
-            return;
-        }
-
-        const thread = getMomentThread(target.postId, target.commentId);
-        if (!thread) return;
-        const lastParticipant = thread.comment.replies.length
-            ? thread.comment.replies[thread.comment.replies.length - 1].author
-            : thread.comment.author;
-        const reply = {
+        const latestPost = momentsData.posts.find(p => p.id === postId);
+        if (!latestPost) return;
+        const latestComment = latestPost.comments.find(c => c.id === comment.id);
+        if (!latestComment) return;
+        
+        const partnerReplyText = getRandomReplyText(2, 3);
+        const partnerReply = {
             id: 'reply_' + Date.now(),
-            author: 'me',
-            text,
-            replyTo: lastParticipant,
-            replyToName: lastParticipant === 'me' ? getMyName() : getPartnerName(),
+            author: 'partner',
+            text: partnerReplyText,
             aiExpandedText: null,
             timestamp: Date.now()
         };
-        thread.comment.replies.push(reply);
+        if (!latestComment.replies) latestComment.replies = [];
+        latestComment.replies.push(partnerReply);
         saveMomentsData();
-        input.value = '';
-        input.style.height = 'auto';
+        
+        if (currentMomentsTab === 'partner' || currentMomentsTab === 'mine') {
+            renderMomentsList(currentMomentsTab);
+        }
+        showNotification(`${getPartnerName()} 回复了你的评论 ✦`, 'success', 3000);
+    }, delay);
+};
+    // 回复评论
+    window.replyToMomentComment = function(postId, commentId) {
+        const replyText = prompt('输入你的回复：');
+        if (!replyText || !replyText.trim()) return;
+        
+        loadMomentsData();
+        const post = momentsData.posts.find(p => p.id === postId);
+        if (!post) return;
+        const comment = post.comments.find(c => c.id === commentId);
+        if (!comment) return;
+        
+        const reply = {
+            id: 'reply_' + Date.now(),
+            author: 'me',
+            text: replyText.trim(),
+            aiExpandedText: null,
+            timestamp: Date.now()
+        };
+        if (!comment.replies) comment.replies = [];
+        comment.replies.push(reply);
+        saveMomentsData();
         renderMomentsList(currentMomentsTab);
         showNotification('回复成功 ✦', 'success');
-        setTimeout(() => scrollToMomentThreadLatest(target.postId, target.commentId, true), 30);
-        schedulePartnerMomentReply(target.postId, target.commentId);
-    };
-
-    // 梦角在1分钟内接着同一个楼回复。
-    function schedulePartnerMomentReply(postId, commentId) {
+        
+        // 梦角1分钟内回复
         const delay = Math.random() * 60 * 1000;
         setTimeout(() => {
             loadMomentsData();
-            const post = momentsData.posts.find(p => p.id === postId);
-            if (!post) return;
-            const comment = (post.comments || []).find(c => c.id === commentId);
-            if (!comment) return;
-            if (!Array.isArray(comment.replies)) comment.replies = [];
-            const lastParticipant = comment.replies.length
-                ? comment.replies[comment.replies.length - 1].author
-                : comment.author;
+            const currentPost = momentsData.posts.find(p => p.id === postId);
+            if (!currentPost) return;
+            const currentComment = currentPost.comments.find(c => c.id === commentId);
+            if (!currentComment) return;
+            
+            const partnerReplyText = getRandomReplyText(2, 3);
             const partnerReply = {
                 id: 'reply_' + Date.now(),
                 author: 'partner',
-                text: getRandomReplyText(2, 3),
-                replyTo: lastParticipant,
-                replyToName: lastParticipant === 'me' ? getMyName() : getPartnerName(),
+                text: partnerReplyText,
                 aiExpandedText: null,
                 timestamp: Date.now()
             };
-            comment.replies.push(partnerReply);
+            if (!currentComment.replies) currentComment.replies = [];
+            currentComment.replies.push(partnerReply);
             saveMomentsData();
-            if (currentMomentsTab === 'partner' || currentMomentsTab === 'mine') {
-                renderMomentsList(currentMomentsTab);
-            }
+            if (currentMomentsTab === 'mine') renderMomentsList('mine');
             showNotification(`${getPartnerName()} 回复了你的评论 ✦`, 'success', 3000);
         }, delay);
-    }
-
-    // 固定回复框：发送按钮、回车发送，Shift+Enter 换行。
-    (function initMomentsReplyComposer() {
-        function bind() {
-            const input = document.getElementById('moments-reply-input');
-            const send = document.getElementById('moments-reply-send');
-            if (!input || !send || input.dataset.bound === '1') return;
-            input.dataset.bound = '1';
-            send.addEventListener('click', window.submitMomentReply);
-            input.addEventListener('input', () => {
-                input.style.height = 'auto';
-                input.style.height = Math.min(input.scrollHeight, 88) + 'px';
-            });
-            input.addEventListener('keydown', e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    window.submitMomentReply();
-                }
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
-        else bind();
-    })();
-
+    };
+    
     // 删除帖子
     window.deleteMomentPost = function(postId) {
         if (!confirm('确定要删除这条朋友圈吗？')) return;
