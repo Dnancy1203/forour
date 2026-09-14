@@ -12281,6 +12281,65 @@ html[data-theme="dark"] .web-embed-content iframe {
 #custom-replies-modal .modal-sidebar>.sidebar-btn span{min-width:0!important;max-width:calc(100% - 17px)!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
 #custom-replies-modal .modal-sidebar>.sidebar-btn i{flex:0 0 auto!important;font-size:13px!important;}
 </style>
+
+<style id="ourlove-moments-fixed-bottom-v2">
+/* 朋友圈：内容独立滚动，底部发布栏永远固定在窗口内 */
+#moments-modal .modal-content {
+    height: min(70vh, 760px);
+    max-height: 70vh;
+    min-height: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+#moments-modal .moments-header,
+#moments-modal .moments-tabs,
+#moments-modal .moments-publish-fixed {
+    flex: 0 0 auto !important;
+}
+#moments-modal #moments-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+#moments-modal .moments-publish-fixed {
+    position: relative !important;
+    bottom: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+</style>
+
+<style id="ourlove-chat-reply-comfort-v1">
+/* 长聊天时：一键回到最下面，不必手动拖到底 */
+.chat-jump-latest {
+    position: absolute;
+    right: 14px;
+    bottom: 92px;
+    z-index: 25;
+    display: none;
+    align-items: center;
+    gap: 5px;
+    height: 34px;
+    padding: 0 11px;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: var(--secondary-bg);
+    color: var(--text-secondary);
+    box-shadow: 0 3px 12px rgba(0,0,0,.10);
+    font-size: 11px;
+    font-family: var(--font-family);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+}
+.chat-jump-latest.show { display: flex; }
+.chat-jump-latest i { font-size: 11px; }
+@media (max-width: 480px) {
+    .chat-jump-latest { right: 10px; bottom: 88px; height: 32px; padding: 0 10px; }
+}
+</style>
 </head>
 <body>
 <div id="splash-declaration">
@@ -12562,6 +12621,9 @@ html[data-theme="dark"] .web-embed-content iframe {
             </div>
         </div>
     </div>
+    <button type="button" id="chat-jump-latest" class="chat-jump-latest" aria-label="回到最新消息" title="回到最新消息">
+        <i class="fas fa-chevron-down"></i><span>最新消息</span>
+    </button>
     <div class="input-area-wrapper">
         <div class="batch-preview" id="batch-preview"></div>
         <div id="reply-preview-container"></div>
@@ -28857,6 +28919,21 @@ function setupTutorialListeners() {
                     startTour();
                 }
             }, 300);
+
+            // 长聊天快捷回底。
+            const jumpLatest = document.getElementById('chat-jump-latest');
+            if (jumpLatest && !jumpLatest.dataset.bound) {
+                jumpLatest.dataset.bound = '1';
+                jumpLatest.addEventListener('click', () => {
+                    DOMElements.chatContainer.scrollTo({ top: DOMElements.chatContainer.scrollHeight, behavior: 'smooth' });
+                });
+            }
+            const updateJumpLatest = () => {
+                const distance = DOMElements.chatContainer.scrollHeight - DOMElements.chatContainer.scrollTop - DOMElements.chatContainer.clientHeight;
+                if (jumpLatest) jumpLatest.classList.toggle('show', distance > 180);
+            };
+            DOMElements.chatContainer.addEventListener('scroll', updateJumpLatest);
+            requestAnimationFrame(updateJumpLatest);
         });
     }
 }
@@ -28976,10 +29053,19 @@ if (target.classList.contains('delete-btn')) {
                         text: message.text
                     };
                     updateReplyPreview();
-                    DOMElements.messageInput.focus();
+                    // 选中回复后直接回到底部：回复预览会出现在输入框上方，
+                    // 不需要用户再从长聊天记录里一路滑到底。
                     const targetMessageElement = DOMElements.chatContainer.querySelector(`[data-id="${message.id}"]`);
-                    if (targetMessageElement) targetMessageElement.scrollIntoView({
-                        behavior: 'smooth', block: 'center'
+                    if (targetMessageElement) {
+                        targetMessageElement.classList.add('reply-jump-flash');
+                        setTimeout(() => targetMessageElement.classList.remove('reply-jump-flash'), 1000);
+                    }
+                    requestAnimationFrame(() => {
+                        DOMElements.chatContainer.scrollTo({
+                            top: DOMElements.chatContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                        setTimeout(() => DOMElements.messageInput.focus(), 260);
                     });
                     return;
                 } 
