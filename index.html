@@ -7198,48 +7198,58 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        /* 回复管理顶部四个并列入口：强制一行四等分，手机端不再需要横向滑动 */
+        /* 回复管理顶部：四个入口永远同一行、同宽，禁止横向滚动 */
         #custom-replies-modal .modal-sidebar {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 8px 10px;
-            gap: 4px;
-            justify-content: stretch;
-            overflow: hidden;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 8px 8px !important;
+            gap: 3px !important;
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            overflow: hidden !important;
+            justify-content: initial !important;
+            align-items: stretch !important;
         }
         #custom-replies-modal .modal-sidebar .sidebar-btn {
-            flex: 1 1 0;
-            min-width: 0;
-            width: 0;
-            max-width: none;
-            padding: 10px 4px;
-            gap: 5px;
-            white-space: nowrap;
-            box-sizing: border-box;
+            min-width: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 9px 2px !important;
+            gap: 3px !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            white-space: nowrap !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }
         #custom-replies-modal .modal-sidebar .sidebar-btn span {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
         }
         #custom-replies-modal .modal-sidebar .sidebar-btn i {
-            flex: 0 0 auto;
-            font-size: 16px;
+            flex: 0 0 auto !important;
+            font-size: 15px !important;
         }
         @media (max-width: 480px) {
             #custom-replies-modal .modal-sidebar {
-                padding: 7px 7px;
-                gap: 2px;
+                padding: 7px 5px !important;
+                gap: 2px !important;
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
             }
             #custom-replies-modal .modal-sidebar .sidebar-btn {
-                padding: 9px 2px;
-                gap: 3px;
-                font-size: 12px;
-                border-radius: 10px;
+                padding: 9px 1px !important;
+                gap: 2px !important;
+                font-size: 11px !important;
+                border-radius: 9px !important;
             }
             #custom-replies-modal .modal-sidebar .sidebar-btn i {
-                font-size: 14px;
+                font-size: 13px !important;
             }
         }
 
@@ -12194,7 +12204,14 @@ html[data-theme="dark"] .web-embed-content iframe {
 </style>
 
 <style id="ourlove-reply-sidebar-final-fix">
-/* 回复管理四个主入口：固定四等分，不允许横向滚动 */
+/* 回复管理顶部：四个入口是同一级，手机端固定四列，不产生横向滚动。 */
+#custom-replies-modal .modal-content {
+  width: min(96vw, 900px) !important;
+  max-width: min(96vw, 900px) !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
 #custom-replies-modal .modal-sidebar {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -12205,51 +12222,56 @@ html[data-theme="dark"] .web-embed-content iframe {
   padding: 7px 8px !important;
   gap: 4px !important;
   overflow: hidden !important;
-  justify-content: initial !important;
   align-items: stretch !important;
 }
 #custom-replies-modal .modal-sidebar .sidebar-btn {
   display: flex !important;
   width: 100% !important;
   min-width: 0 !important;
-  max-width: none !important;
+  max-width: 100% !important;
   flex: none !important;
   box-sizing: border-box !important;
-  padding: 9px 2px !important;
+  padding: 9px 1px !important;
   margin: 0 !important;
   gap: 3px !important;
   justify-content: center !important;
+  align-items: center !important;
   overflow: hidden !important;
   white-space: nowrap !important;
 }
 #custom-replies-modal .modal-sidebar .sidebar-btn span {
   min-width: 0 !important;
-  max-width: 100% !important;
+  max-width: calc(100% - 20px) !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 #custom-replies-modal .modal-sidebar .sidebar-btn i {
   flex: 0 0 auto !important;
+  font-size: 14px !important;
 }
 #custom-replies-modal .modal-main-view {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+#custom-replies-modal #ourlove-rmh-panel {
+  position: absolute !important;
+  inset: 0 !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
 }
-#custom-replies-modal #ourlove-rmh-panel {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
-  overflow-x: hidden !important;
-}
-@media (max-width: 360px) {
+@media (max-width: 420px) {
   #custom-replies-modal .modal-sidebar { padding: 6px 5px !important; gap: 2px !important; }
-  #custom-replies-modal .modal-sidebar .sidebar-btn { font-size: 11px !important; padding: 8px 1px !important; gap: 2px !important; }
+  #custom-replies-modal .modal-sidebar .sidebar-btn { font-size: 11px !important; padding: 8px 0 !important; gap: 2px !important; }
   #custom-replies-modal .modal-sidebar .sidebar-btn i { font-size: 13px !important; }
+  #custom-replies-modal .modal-sidebar .sidebar-btn span { max-width: calc(100% - 18px) !important; }
 }
 </style>
 </head>
@@ -14121,6 +14143,10 @@ html[data-theme="dark"] .web-embed-content iframe {
                 <button class="sidebar-btn" data-major="announcement" onclick="switchToAnnouncementPanel()">
                     <i class="fas fa-newspaper"></i>
                     <span>公告</span>
+                </button>
+                <button class="sidebar-btn" id="ourlove-rmh-btn" data-major="reply-mood-hints" type="button">
+                    <i class="fas fa-heart"></i>
+                    <span>回复心意</span>
                 </button>
             </div>
     
