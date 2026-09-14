@@ -38825,11 +38825,13 @@ async function speakTtsText(text) {
                             </span>`;
                         }
                         // 原来的“回复”保留；“继续回复”只在长楼出现，并固定在这一楼第一条评论旁。
-                        html += `<div class="moment-comment-actions">
-                            <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
-                                <i class="fas fa-reply"></i> 回复
-                            </span>
-                        </div>`;
+                        if (replyCount < 5) {
+                            html += `<div class="moment-comment-actions">
+                                <span class="moment-comment-reply" onclick="window.replyToMomentComment('${post.id}','${comment.id}')">
+                                    <i class="fas fa-reply"></i> 回复
+                                </span>
+                            </div>`;
+                        }
 
                         // 回复串
                         if (comment.replies && comment.replies.length > 0) {
